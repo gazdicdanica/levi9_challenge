@@ -34,10 +34,5 @@ public class PlayerService implements IPlayerService {
         return playerRepo.findByFullName(fullName).orElseThrow(() -> new EntityNotFoundException("Player not found"));
     }
 
-    @Override
-    public Player findById(Long id) {
-        return playerRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("Player not found"));
-    }
-
 
 }
