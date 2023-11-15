@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PointsDTO {
-    private float attempts;
-    private float made;
-    private float shootingPercentage;
+    private double attempts;
+    private double made;
+    private double shootingPercentage;
 }

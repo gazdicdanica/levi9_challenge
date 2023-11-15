@@ -1,6 +1,8 @@
 package com.example.levi9_challenge.controller;
 
 import com.example.levi9_challenge.dto.StatsDTO;
+import com.example.levi9_challenge.model.Player;
+import com.example.levi9_challenge.service.IGameStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,11 +19,15 @@ public class PlayerController {
 
     @Autowired
     private IPlayerService playerService;
+    @Autowired
+    private IGameStatisticsService gameStatisticsService;
 
 
     @GetMapping(value = "/stats/player/{playerFullName}")
     public ResponseEntity<StatsDTO> getPlayerStats(@PathVariable String playerFullName){
+        Player player = playerService.findByFullName(playerFullName);
+        StatsDTO stats = gameStatisticsService.getPlayerStats(player);
 
-        return new ResponseEntity<>(new StatsDTO(), HttpStatus.OK);
+        return new ResponseEntity<>(stats, HttpStatus.OK);
     }
 }

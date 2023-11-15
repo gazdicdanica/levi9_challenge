@@ -11,10 +11,10 @@ public class TraditionalStatsDTO {
     private PointsDTO freeThrows;
     private PointsDTO twoPoints;
     private PointsDTO threePoints;
-    private float points;
-    private float rebounds;
-    private float blocks;
-    private float assists;
-    private float steals;
-    private float turnovers;
+    private double points;
+    private double rebounds;
+    private double blocks;
+    private double assists;
+    private double steals;
+    private double turnovers;
 }

@@ -20,16 +20,16 @@ public class GameStatistic {
     @JoinColumn(name = "player_id", referencedColumnName = "id")
     private Player player;
 
-    private float freeThrowMade;
-    private float freeThrowAttempted;
-    private float twoPointsMade;
-    private float twoPointsAttempted;
-    private float threePointsMade;
-    private float threePointsAttempted;
-    private float rebounds;
-    private float blocks;
-    private float assists;
-    private float steals;
-    private float turnovers;
+    private double freeThrowMade;
+    private double freeThrowAttempted;
+    private double twoPointsMade;
+    private double twoPointsAttempted;
+    private double threePointsMade;
+    private double threePointsAttempted;
+    private double rebounds;
+    private double blocks;
+    private double assists;
+    private double steals;
+    private double turnovers;
 
 }

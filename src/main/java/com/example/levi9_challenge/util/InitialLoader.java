@@ -46,10 +46,10 @@ public class InitialLoader implements CommandLineRunner {
 
     private GameStatistic parseStatistics(String line, Player player){
         String[] tokens = line.split(",");
-        return new GameStatistic(0L, player, Float.parseFloat(tokens[2]), Float.parseFloat(tokens[3]),
-                Float.parseFloat(tokens[4]), Float.parseFloat(tokens[5]), Float.parseFloat(tokens[6]),
-                Float.parseFloat(tokens[7]), Float.parseFloat(tokens[8]), Float.parseFloat(tokens[9]),
-                Float.parseFloat(tokens[10]), Float.parseFloat(tokens[11]), Float.parseFloat(tokens[12]));
+        return new GameStatistic(0L, player, Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3]),
+                Double.parseDouble(tokens[4]), Double.parseDouble(tokens[5]), Double.parseDouble(tokens[6]),
+                Double.parseDouble(tokens[7]), Double.parseDouble(tokens[8]), Double.parseDouble(tokens[9]),
+                Double.parseDouble(tokens[10]), Double.parseDouble(tokens[11]), Double.parseDouble(tokens[12]));
     }
 
     private Player parsePlayer(String line){

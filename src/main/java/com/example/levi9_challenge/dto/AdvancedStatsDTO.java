@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AdvancedStatsDTO {
-    private float valorization;
-    private float effectiveFieldGoalPercentage;
-    private float trueShootingPercentage;
-    private float hollingerAssistRatio;
+    private double valorization;
+    private double effectiveFieldGoalPercentage;
+    private double trueShootingPercentage;
+    private double hollingerAssistRatio;
 }
