@@ -10,7 +10,5 @@ public interface IPlayerService {
     Player addPlayer(Player player);
 
     Player findByFullName(String fullName);
-    Player findById(Long id);
-
 
 }

@@ -70,7 +70,7 @@ class Levi9ChallengeApplicationTests {
 
 	@Test
 	void publicTestCase_notExists() throws Exception {
-		String playerName = "Imenko Prezimenic";
+		String playerName = "Danica Gazdic";
 
 		MvcResult mvcResult = mockMvc.perform(get("/stats/player/{playerFullName}", playerName)
 						.contentType(MediaType.APPLICATION_JSON))
