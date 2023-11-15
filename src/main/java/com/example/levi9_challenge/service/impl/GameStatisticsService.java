@@ -1,9 +1,6 @@
 package com.example.levi9_challenge.service.impl;
 
-import com.example.levi9_challenge.dto.AdvancedStatsDTO;
-import com.example.levi9_challenge.dto.PointsDTO;
-import com.example.levi9_challenge.dto.StatsDTO;
-import com.example.levi9_challenge.dto.TraditionalStatsDTO;
+import com.example.levi9_challenge.dto.*;
 import com.example.levi9_challenge.model.GameStatistic;
 import com.example.levi9_challenge.model.Player;
 import com.example.levi9_challenge.repo.GameStatisticsRepo;
@@ -12,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.ToDoubleFunction;
 
 @Service
@@ -21,13 +19,32 @@ public class GameStatisticsService implements IGameStatisticsService {
     private GameStatisticsRepo gameStatisticsRepo;
 
     @Override
-    public GameStatistic saveGameStatistics(GameStatistic gs) {
-        return gameStatisticsRepo.save(gs);
+    public void saveGameStatistics(Map<Player, List<GameStatisticsDTO>> map) {
+        for (Map.Entry<Player, List<GameStatisticsDTO>> entry : map.entrySet()) {
+            GameStatistic gameStatistic = new GameStatistic();
+            gameStatistic.setPlayer(entry.getKey());
+            gameStatistic.setGamesPlayed(entry.getValue().size());
+            gameStatistic.setFreeThrowMade(getMeanValue(entry.getValue(), GameStatisticsDTO::getFreeThrowMade));
+            gameStatistic.setFreeThrowAttempted(getMeanValue(entry.getValue(), GameStatisticsDTO::getFreeThrowAttempted));
+            gameStatistic.setTwoPointsMade(getMeanValue(entry.getValue(), GameStatisticsDTO::getTwoPointsMade));
+            gameStatistic.setTwoPointsAttempted(getMeanValue(entry.getValue(), GameStatisticsDTO::getTwoPointsAttempted));
+            gameStatistic.setThreePointsMade(getMeanValue(entry.getValue(), GameStatisticsDTO::getThreePointsMade));
+            gameStatistic.setThreePointsAttempted(getMeanValue(entry.getValue(), GameStatisticsDTO::getThreePointsAttempted));
+            gameStatistic.setRebounds(getMeanValue(entry.getValue(), GameStatisticsDTO::getRebounds));
+            gameStatistic.setBlocks(getMeanValue(entry.getValue(), GameStatisticsDTO::getBlocks));
+            gameStatistic.setAssists(getMeanValue(entry.getValue(), GameStatisticsDTO::getAssists));
+            gameStatistic.setSteals(getMeanValue(entry.getValue(), GameStatisticsDTO::getSteals));
+            gameStatistic.setTurnovers(getMeanValue(entry.getValue(), GameStatisticsDTO::getTurnovers));
+            gameStatistic.calculateAdvanced();
+
+            gameStatisticsRepo.save(gameStatistic);
+
+        }
     }
 
     @Override
-    public List<GameStatistic> getAllByPlayer(Player player) {
-        return gameStatisticsRepo.getAllByPlayer(player);
+    public GameStatistic getByPlayer(Player player) {
+        return gameStatisticsRepo.getByPlayer(player);
     }
 
     @Override
@@ -35,83 +52,58 @@ public class GameStatisticsService implements IGameStatisticsService {
         StatsDTO ret = new StatsDTO();
         ret.setPlayerName(player.getFullName());
 
-        List<GameStatistic> allGames = getAllByPlayer(player);
-        ret.setGamesPlayed(allGames.size());
+        GameStatistic gameStatistic = getByPlayer(player);
+        ret.setGamesPlayed(gameStatistic.getGamesPlayed());
 
-        TraditionalStatsDTO traditional = getTraditionalStats(allGames);
+        TraditionalStatsDTO traditional = getTraditionalStats(gameStatistic);
         ret.setTraditional(traditional);
-        ret.setAdvanced(getAdvancedStats(traditional));
+        ret.setAdvanced(getAdvancedStats(gameStatistic));
         return ret;
     }
 
-    private AdvancedStatsDTO getAdvancedStats(TraditionalStatsDTO tradStats){
-        AdvancedStatsDTO dto = new AdvancedStatsDTO();
-        double ftm = tradStats.getFreeThrows().getMade();
-        double fta = tradStats.getFreeThrows().getAttempts();
-        double twopm = tradStats.getTwoPoints().getMade();
-        double twopa = tradStats.getTwoPoints().getAttempts();
-        double threepm = tradStats.getThreePoints().getMade();
-        double threepa = tradStats.getThreePoints().getAttempts();
-
-        //(FTM + 2x2PM + 3x3PM + REB + BLK + AST + STL) - (FTA-FTM + 2PA-2PM + 3PA-3PM + TOV)
-        dto.setValorization(roundValue(( ftm + twopm * 2 + threepm * 3
-                + tradStats.getRebounds() + tradStats.getBlocks() + tradStats.getAssists() + tradStats.getSteals())
-                - (fta - ftm + twopa - twopm + threepa - threepm + tradStats.getTurnovers())));
-
-        //(2PM + 3PM + 0,5 * 3PM) / (2PA + 3PA) * 100
-        dto.setEffectiveFieldGoalPercentage(roundValue((twopm + threepm + 0.5 * threepm) / (twopa + threepa) * 100.0));
-
-        //PTS / (2 * (2PA + 3PA +0,475 * FTA)) * 100
-        dto.setTrueShootingPercentage(roundValue(tradStats.getPoints() / (2 * (twopa + threepa + 0.475 * fta)) * 100.0));
-
-        //AST / (2PA + 3PA + 0,475 * FTA + AST + TOV) * 100
-        dto.setHollingerAssistRatio(roundValue(tradStats.getAssists() / (twopa + threepa + 0.475 * fta + tradStats.getAssists() + tradStats.getTurnovers())*100.0));
-
-        return dto;
-    }
-
-    private TraditionalStatsDTO getTraditionalStats(List<GameStatistic> allGames){
+    private TraditionalStatsDTO getTraditionalStats(GameStatistic gameStatistic){
 
         TraditionalStatsDTO dto = new TraditionalStatsDTO();
-        dto.setFreeThrows(calculatePointsStats(allGames, GameStatistic::getFreeThrowMade, GameStatistic::getFreeThrowAttempted));
-        dto.setTwoPoints(calculatePointsStats(allGames, GameStatistic::getTwoPointsMade, GameStatistic::getTwoPointsAttempted));
-        dto.setThreePoints(calculatePointsStats(allGames, GameStatistic::getThreePointsMade, GameStatistic::getThreePointsAttempted));
+        dto.setFreeThrows(calculatePointStats(gameStatistic.getFreeThrowMade(), gameStatistic.getFreeThrowAttempted()));
+        dto.setTwoPoints(calculatePointStats(gameStatistic.getTwoPointsMade(), gameStatistic.getTwoPointsAttempted()));
+        dto.setThreePoints(calculatePointStats(gameStatistic.getThreePointsMade(), gameStatistic.getThreePointsAttempted()));
 
-        dto.setRebounds(getMeanValue(allGames, GameStatistic::getRebounds));
-        dto.setBlocks(getMeanValue(allGames,GameStatistic::getBlocks));
-        dto.setAssists(getMeanValue(allGames,GameStatistic::getAssists));
-        dto.setSteals(getMeanValue(allGames,GameStatistic::getSteals));
-        dto.setTurnovers(getMeanValue(allGames, GameStatistic::getTurnovers));
-        dto.setPoints(dto.getFreeThrows().getMade() + dto.getTwoPoints().getMade() * 2 + dto.getThreePoints().getMade() * 3);
+        dto.setRebounds(roundValue(gameStatistic.getRebounds()));
+        dto.setBlocks(roundValue(gameStatistic.getBlocks()));
+        dto.setAssists(roundValue(gameStatistic.getAssists()));
+        dto.setSteals(roundValue(gameStatistic.getSteals()));
+        dto.setTurnovers(roundValue(gameStatistic.getTurnovers()));
+        dto.setPoints(roundValue(gameStatistic.getPoints()));
 
         return dto;
     }
 
-    private double getMeanValue(List<GameStatistic> list, ToDoubleFunction<GameStatistic> getter){
-        return roundValue(list.stream().mapToDouble(getter).sum() / list.size());
+
+    private AdvancedStatsDTO getAdvancedStats(GameStatistic gameStatistic){
+        AdvancedStatsDTO dto = new AdvancedStatsDTO();
+        dto.setValorization(roundValue(gameStatistic.getValorization()));
+        dto.setEffectiveFieldGoalPercentage(roundValue(gameStatistic.getEffectiveFieldGoalPercentage()));
+        dto.setTrueShootingPercentage(roundValue(gameStatistic.getTrueShootingPercentage()));
+        dto.setHollingerAssistRatio(roundValue(gameStatistic.getHollingerAssistRatio()));
+        return dto;
+    }
+
+
+    private double getMeanValue(List<GameStatisticsDTO> list, ToDoubleFunction<GameStatisticsDTO> getter){
+        return list.stream().mapToDouble(getter).sum() / list.size();
     }
 
     private double roundValue(double value){
         return Math.round(value * 10.0) / 10.0;
     }
 
-    private PointsDTO calculatePointsStats(List<GameStatistic> allGames,
-                                           ToDoubleFunction<GameStatistic> madeGetter,
-                                           ToDoubleFunction<GameStatistic> attemptedGetter) {
+    private PointsDTO calculatePointStats(double made, double attempted) {
         PointsDTO points = new PointsDTO();
-        int gamesNum = allGames.size();
 
-        double madeMean = allGames.stream()
-                .mapToDouble(madeGetter)
-                .sum() / gamesNum;
+        points.setMade(roundValue(made));
+        points.setAttempts(roundValue(attempted));
 
-        double attemptedMean = allGames.stream()
-                .mapToDouble(attemptedGetter)
-                .sum() / gamesNum;
-
-        points.setMade(roundValue(madeMean));
-        points.setAttempts(roundValue(attemptedMean));
-        points.setShootingPercentage(roundValue(madeMean / attemptedMean * 100));
+        points.setShootingPercentage(roundValue((made / attempted) * 100));
 
         return points;
     }

@@ -1,6 +1,7 @@
 package com.example.levi9_challenge.util;
 
 
+import com.example.levi9_challenge.dto.GameStatisticsDTO;
 import com.example.levi9_challenge.model.GameStatistic;
 import com.example.levi9_challenge.model.Player;
 import com.example.levi9_challenge.service.IGameStatisticsService;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Scanner;
+import java.util.*;
 
 @Component
 public class InitialLoader implements CommandLineRunner {
@@ -30,6 +31,7 @@ public class InitialLoader implements CommandLineRunner {
     public void run(String... args) throws Exception {
         Resource resource = resourceLoader.getResource("classpath:L9HomeworkChallengePlayersInput.csv");
 
+        Map<Player, List<GameStatisticsDTO>> statistics = new HashMap<>();
         Scanner sc = new Scanner(resource.getFile());
         sc.useDelimiter("\n");
         String line = sc.next();
@@ -37,16 +39,22 @@ public class InitialLoader implements CommandLineRunner {
             line = sc.next();
             Player player = parsePlayer(line);
             player = playerService.addPlayer(player);
-            GameStatistic statistic = parseStatistics(line, player);
-            gameService.saveGameStatistics(statistic);
+            GameStatisticsDTO dto = parseStatistics(line, player);
+            if(statistics.containsKey(player)){
+                statistics.get(player).add(dto);
+            }else{
+                statistics.put(player, new ArrayList<>(List.of(dto)));
+            }
         }
-
         sc.close();
+
+        gameService.saveGameStatistics(statistics);
+
     }
 
-    private GameStatistic parseStatistics(String line, Player player){
+    private GameStatisticsDTO parseStatistics(String line, Player player){
         String[] tokens = line.split(",");
-        return new GameStatistic(0L, player, Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3]),
+        return new GameStatisticsDTO(Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3]),
                 Double.parseDouble(tokens[4]), Double.parseDouble(tokens[5]), Double.parseDouble(tokens[6]),
                 Double.parseDouble(tokens[7]), Double.parseDouble(tokens[8]), Double.parseDouble(tokens[9]),
                 Double.parseDouble(tokens[10]), Double.parseDouble(tokens[11]), Double.parseDouble(tokens[12]));

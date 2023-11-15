@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface GameStatisticsRepo extends JpaRepository<GameStatistic, Long> {
 
-    List<GameStatistic> getAllByPlayer(Player player);
+    GameStatistic getByPlayer(Player player);
 }
