@@ -3,12 +3,17 @@ package com.example.levi9_challenge.util;
 
 import com.example.levi9_challenge.model.GameStatistic;
 import com.example.levi9_challenge.model.Player;
+import com.example.levi9_challenge.service.IGameStatisticsService;
+import com.example.levi9_challenge.service.IPlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Scanner;
 
 @Component
@@ -16,17 +21,24 @@ public class InitialLoader implements CommandLineRunner {
 
     @Autowired
     private ResourceLoader resourceLoader;
+    @Autowired
+    private IGameStatisticsService gameService;
+    @Autowired
+    private IPlayerService playerService;
 
     @Override
     public void run(String... args) throws Exception {
         Resource resource = resourceLoader.getResource("classpath:L9HomeworkChallengePlayersInput.csv");
+
         Scanner sc = new Scanner(resource.getFile());
-        sc.useDelimiter("/n");   //sets the delimiter pattern
+        sc.useDelimiter("\r");
         String line = sc.next();
         while (sc.hasNext()){
             line = sc.next();
             Player player = parsePlayer(line);
-
+            player = playerService.addPlayer(player);
+            GameStatistic statistic = parseStatistics(line, player);
+            gameService.saveGameStatistics(statistic);
         }
 
         sc.close();
