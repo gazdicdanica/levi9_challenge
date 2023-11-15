@@ -31,7 +31,7 @@ public class InitialLoader implements CommandLineRunner {
         Resource resource = resourceLoader.getResource("classpath:L9HomeworkChallengePlayersInput.csv");
 
         Scanner sc = new Scanner(resource.getFile());
-        sc.useDelimiter("\r");
+        sc.useDelimiter("\n");
         String line = sc.next();
         while (sc.hasNext()){
             line = sc.next();
