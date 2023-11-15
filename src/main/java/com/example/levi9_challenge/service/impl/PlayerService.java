@@ -1,5 +1,6 @@
 package com.example.levi9_challenge.service.impl;
 
+import com.example.levi9_challenge.exception.EntityNotFoundException;
 import com.example.levi9_challenge.model.Player;
 import com.example.levi9_challenge.service.IPlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,4 +28,16 @@ public class PlayerService implements IPlayerService {
         }
         return optional.get();
     }
+
+    @Override
+    public Player findByFullName(String fullName) {
+        return playerRepo.findByFullName(fullName).orElseThrow(() -> new EntityNotFoundException("Player not found"));
+    }
+
+    @Override
+    public Player findById(Long id) {
+        return playerRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("Player not found"));
+    }
+
+
 }
